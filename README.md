@@ -15,9 +15,19 @@ jichu4n for his blog series about x window managers and his basic_wm which this 
 
 # Keybinds
 
-```Alt + LeftMouseButton``` | move window
-```Alt + RightMouseButton```| resize window
-```Alt + Return```| open rofi
-```Alt + Right``` | resize to right (only in tiling mode)
-```Alt + Left``` | resize to left (only in tiling mode)
+```Alt + LeftMouseButton``` | move window  
+
+
+```Alt + RightMouseButton```| resize window  
+
+
+```Alt + Return```| open rofi  
+
+
+```Alt + Right``` | resize to right (only in tiling mode)  
+
+
+```Alt + Left``` | resize to left (only in tiling mode)  
+
+
 ```Alt + t``` | enter tiling mode (allign windows)
