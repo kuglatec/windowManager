@@ -10,8 +10,7 @@ git clone https://github.com/kuglatec/windowManager
 3. ```cd windowManager```
 4. ```./buiild_and_run.sh```
 
-# credits
-jichu4n for his blog series about x window managers and his basic_wm which this project is based off 
+
 
 # Keybinds
 
@@ -31,3 +30,5 @@ jichu4n for his blog series about x window managers and his basic_wm which this 
 
 
 ```Alt + t``` | enter tiling mode (allign windows)
+# credits
+jichu4n for his blog series about x window managers and his basic_wm which this project is based off 
