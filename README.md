@@ -4,8 +4,7 @@ simple dynamic tiling window manager for Xorg
 # Usage
 1. Clone the repository
 ```
-git clone https://github.com/kuglatec/dotter
-cd dotter
+git clone https://github.com/kuglatec/windowManager
 ```
 2. Install Xephyr for using a nested X session
 3. ```cd windowManager```
