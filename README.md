@@ -7,8 +7,10 @@ simple dynamic tiling window manager for Xorg
 git clone https://github.com/kuglatec/windowManager
 ```
 2. Install Xephyr for using a nested X session
-3. ```cd windowManager```
-4. ```./buiild_and_run.sh```
+3. Install libx11
+4. install google glog
+5. ```cd windowManager```
+6. ```./buiild_and_run.sh```
 
 
 
