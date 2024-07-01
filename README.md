@@ -25,11 +25,14 @@ git clone https://github.com/kuglatec/windowManager
 ```Alt + Return```| open rofi  
 
 
-```Alt + Right``` | resize to right (only in tiling mode)  
+```Alt + Right``` | resize to right (tiling mode)  
 
 
-```Alt + Left``` | resize to left (only in tiling mode)  
+```Alt + Left``` | resize to left (tiling mode)  
 
+```Alt + d``` | swap window right (tiling mode)  
+
+```Alt + a``` | swap window left (tiling mode)  
 
 ```Alt + t``` | enter tiling mode (allign windows)
 # credits
