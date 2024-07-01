@@ -279,6 +279,22 @@ void WindowManager::Frame(Window w, bool was_created_before_window_manager) {
       false,
       GrabModeAsync,
       GrabModeAsync);
+  XGrabKey(
+      display_,
+      XKeysymToKeycode(display_, XK_D),
+      Mod1Mask,
+      w,
+      false,
+      GrabModeAsync,
+      GrabModeAsync);
+  XGrabKey(
+      display_,
+      XKeysymToKeycode(display_, XK_A),
+      Mod1Mask,
+      w,
+      false,
+      GrabModeAsync,
+      GrabModeAsync);
   LOG(INFO) << "Framed window " << w << " [" << frame << "]";
 }
 
@@ -380,6 +396,7 @@ void WindowManager::iterateWindows(int num_top_level_windows, Window* top_level_
         &children_return,
         &nchildren_return);
     XResizeWindow(display_, children_return[0], GetScreenWidth(display_) / (num_top_level_windows), GetScreenHeight(display_));
+    XFree(children_return);
     printf("\n\n Resized window number %d to %d X %d", i, GetScreenWidth(display_) / (num_top_level_windows), GetScreenHeight(display_));
   }
 }
@@ -549,6 +566,77 @@ void WindowManager::OnKeyPress(const XKeyEvent& e) {
       }
   }
 
+  else if ((e.state & Mod1Mask) && //swap window to right
+      (e.keycode == XKeysymToKeycode(display_, XK_D))){
+      Window returned_root, returned_parent;
+      Window* top_level_windows;
+      unsigned int num_top_level_windows;
+      CHECK(XQueryTree(
+          display_,
+          root_,
+          &returned_root,
+          &returned_parent,
+          &top_level_windows,
+          &num_top_level_windows));
+      for (int i = 0; i < num_top_level_windows; i++) {
+        XWindowAttributes wattrs, nwattrs;
+        XGetWindowAttributes(display_, clients_[e.window], &wattrs);
+        XGetWindowAttributes(display_, top_level_windows[i], &nwattrs);
+        if (nwattrs.x == wattrs.x + wattrs.width) {
+             Window root_return;
+             Window parent_return;
+             Window *children_return;
+             unsigned int nchildren_return;
+
+            XQueryTree(display_, top_level_windows[i], &root_return, &parent_return, &children_return, &nchildren_return);
+            XMoveWindow(display_, clients_[e.window], nwattrs.x, nwattrs.y);
+            XMoveWindow(display_, top_level_windows[i], wattrs.x, wattrs.y);
+            XResizeWindow(display_, clients_[e.window], nwattrs.width, nwattrs.height);
+            XResizeWindow(display_, e.window, nwattrs.width, nwattrs.height);
+            XResizeWindow(display_, top_level_windows[i], wattrs.width, wattrs.height);
+            XResizeWindow(display_, children_return[0], wattrs.width, wattrs.height);
+            break;
+
+        } 
+      }
+
+  }
+	
+  else if ((e.state & Mod1Mask) && //swap window to right
+      (e.keycode == XKeysymToKeycode(display_, XK_A))){
+      Window returned_root, returned_parent;
+      Window* top_level_windows;
+      unsigned int num_top_level_windows;
+      CHECK(XQueryTree(
+          display_,
+          root_,
+          &returned_root,
+          &returned_parent,
+          &top_level_windows,
+          &num_top_level_windows));
+      for (int i = 0; i < num_top_level_windows; i++) {
+        XWindowAttributes wattrs, nwattrs;
+        XGetWindowAttributes(display_, clients_[e.window], &wattrs);
+        XGetWindowAttributes(display_, top_level_windows[i], &nwattrs);
+        if (nwattrs.x + nwattrs.width == wattrs.x) {
+             Window root_return;
+             Window parent_return;
+             Window *children_return;
+             unsigned int nchildren_return;
+
+            XQueryTree(display_, top_level_windows[i], &root_return, &parent_return, &children_return, &nchildren_return);
+            XMoveWindow(display_, clients_[e.window], nwattrs.x, nwattrs.y);
+            XMoveWindow(display_, top_level_windows[i], wattrs.x, wattrs.y);
+            XResizeWindow(display_, clients_[e.window], nwattrs.width, nwattrs.height);
+            XResizeWindow(display_, e.window, nwattrs.width, nwattrs.height);
+            XResizeWindow(display_, top_level_windows[i], wattrs.width, wattrs.height);
+            XResizeWindow(display_, children_return[0], wattrs.width, wattrs.height);
+            break;
+
+        } 
+      }
+
+  }
 
   else if ((e.state & Mod1Mask) &&
       (e.keycode == XKeysymToKeycode(display_, XK_T))){
@@ -651,14 +739,7 @@ struct Tuple WindowManager::getCursor(Display *display) {
     }
     printf("Mouse is at (%d,%d)\n", root_x, root_y);
     
-    free(root_windows);
+    XFree(root_windows);
     struct Tuple CursorPos = {.x = root_x, .y = root_y};
     return CursorPos;
-}
-int WindowManager::valueinarray(Window w, Window *ws, int n) {
-    for(int i = 0; i < n; i++) {
-        if(ws[i] == w)
-            return i;
-    }
-    return -1;
 }
