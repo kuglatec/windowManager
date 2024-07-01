@@ -25,10 +25,10 @@ git clone https://github.com/kuglatec/windowManager
 ```Alt + Return```| open rofi  
 
 
-```Alt + Right``` | resize to right (tiling mode)  
+```Alt + Right``` | extend to right (tiling mode)  
 
 
-```Alt + Left``` | resize to left (tiling mode)  
+```Alt + Left``` | shrink to right (tiling mode)  
 
 ```Alt + d``` | swap window right (tiling mode)  
 
