@@ -14,7 +14,7 @@ git clone https://github.com/kuglatec/windowManager
 
 
 
-# Keybinds
+# Keybindings
 
 ```Alt + LeftMouseButton``` | move window  
 
