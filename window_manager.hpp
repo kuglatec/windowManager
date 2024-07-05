@@ -49,8 +49,9 @@ class WindowManager {
   void OnKeyRelease(const XKeyEvent& e);
   int GetScreenHeight(Display* display);
   int GetScreenWidth(Display* display);
-  void iterateWindows(int num_top_level_windows, Window* top_level_windows);
-  int valueinarray(Window w, Window *ws, int n); 
+  void iterateWindows();
+  int getBarHeight();
+  int isBar(Window w);
   struct Tuple getCursor(Display* display);
   // Xlib error handler. It must be static as its address is passed to Xlib.
   static int OnXError(Display* display, XErrorEvent* e);
@@ -69,6 +70,8 @@ class WindowManager {
 
   // Handle to the underlying Xlib Display struct.
   Display* display_;
+  //status bar
+  Window bar_;
   // Handle to root window.
   const Window root_;
   int rightWindows_;
