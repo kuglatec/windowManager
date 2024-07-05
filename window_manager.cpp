@@ -3,6 +3,7 @@ extern "C" {
 #include <X11/Xutil.h>
 }
 #include <cstring>
+#include <X11/Xatom.h>
 #include <algorithm>
 #include <glog/logging.h>
 #include "util.hpp"
@@ -14,6 +15,8 @@ using ::std::unique_ptr;
 
 bool WindowManager::wm_detected_;
 mutex WindowManager::wm_detected_mutex_;
+
+
 
 unique_ptr<WindowManager> WindowManager::Create(const string& display_str) {
   // 1. Open X display.
@@ -363,9 +366,8 @@ void WindowManager::OnMapRequest(const XMapRequestEvent& e) {
   Frame(e.window, false);
   // 2. Actually map window.
   XMapWindow(display_, e.window);
-  XWindowChanges changes;
   Tuple CursorPosition = getCursor(display_);
-  
+
   int screenWidth = GetScreenWidth(display_);
   int screenHeight = GetScreenHeight(display_);
   
@@ -373,6 +375,10 @@ void WindowManager::OnMapRequest(const XMapRequestEvent& e) {
   Window* top_level_windows;
   unsigned int num_top_level_windows;
   
+  if (isBar(e.window) == 1) {
+    Unframe(e.window);
+  }
+
   const Window frame = clients_[e.window]; //get frame of mapped window to move it
   Tuple crsr = getCursor(display_);
   XWindowAttributes attrs;
@@ -380,24 +386,54 @@ void WindowManager::OnMapRequest(const XMapRequestEvent& e) {
   XMoveWindow(display_, frame, crsr.x - (attrs.width / 2), crsr.y - (attrs.height / 2));
 }
 
-void WindowManager::iterateWindows(int num_top_level_windows, Window* top_level_windows) {
-  for (int i = 0; i < num_top_level_windows; i++) {
-    XResizeWindow(display_, top_level_windows[i], GetScreenWidth(display_) / (num_top_level_windows),  GetScreenHeight(display_));
-    XMoveWindow(display_, top_level_windows[i], (GetScreenWidth(display_) / num_top_level_windows) * i, 0);
-    Window root_return;
-    Window parent_return;
-    Window *children_return;
-    unsigned int nchildren_return;
-    XQueryTree(
-        display_,
-        top_level_windows[i],
-        &root_return,
-        &parent_return,
-        &children_return,
-        &nchildren_return);
-    XResizeWindow(display_, children_return[0], GetScreenWidth(display_) / (num_top_level_windows), GetScreenHeight(display_));
-    XFree(children_return);
-    printf("\n\n Resized window number %d to %d X %d", i, GetScreenWidth(display_) / (num_top_level_windows), GetScreenHeight(display_));
+void WindowManager::iterateWindows() {
+unsigned int n;
+      	Window *wins, *w, dw;
+      	XWindowAttributes wa;
+      
+      	if (!XQueryTree(display_, root_, &dw, &dw, &wins, &n) || !n)
+      		return;
+
+int wcount;
+wcount = 0; 
+  for (w = &wins[n-1]; w >= &wins[0]; w--) {
+      		if (XGetWindowAttributes(display_, *w, &wa)
+      		&& !wa.override_redirect && wa.map_state == IsViewable) {
+            if (isBar(*w) == 0) {
+              wcount = wcount + 1;
+
+            }
+            else if (isBar(*w) == 1) {
+              bar_ = *w;
+            }
+      	}
+  }
+  int noi = 0; //number of iteration
+  for (w = &wins[n-1]; w >= &wins[0]; w--) {
+      		if (
+              XGetWindowAttributes(display_, *w, &wa) // get wnindow attributes of window w
+              && !wa.override_redirect && wa.map_state == IsViewable
+          ) {
+            if (isBar(*w) == 0) {
+            XResizeWindow(display_, *w, GetScreenWidth(display_) / (wcount), (GetScreenHeight(display_) - getBarHeight()));
+            XMoveWindow(display_, *w, (GetScreenWidth(display_) / wcount) * noi, getBarHeight());
+
+            unsigned int an;
+      	    Window *awins, *aw, adw;
+      	    XWindowAttributes awa;
+      
+      	    if (!XQueryTree(display_, *w, &adw, &adw, &awins, &an) || !an)
+      		    return;
+                for (aw = &awins[n-1]; aw >= &awins[0]; aw--) {
+      		        if (XGetWindowAttributes(display_, *aw, &awa)
+      		        && !awa.override_redirect && awa.map_state == IsViewable) {
+                        XResizeWindow(display_, *aw, GetScreenWidth(display_) / (wcount), (GetScreenHeight(display_) - getBarHeight()));
+      	          }
+                }
+            noi++; 
+            }
+            
+      	}
   }
 }
 
@@ -420,6 +456,9 @@ void WindowManager::OnConfigureRequest(const XConfigureRequestEvent& e) {
 }
 
 void WindowManager::OnButtonPress(const XButtonEvent& e) {
+  if (isBar(e.window)) {
+    return;
+  }
   CHECK(clients_.count(e.window));
   const Window frame = clients_[e.window];
 
@@ -448,7 +487,10 @@ void WindowManager::OnButtonPress(const XButtonEvent& e) {
 void WindowManager::OnButtonRelease(const XButtonEvent& e) {}
 
 void WindowManager::OnMotionNotify(const XMotionEvent& e) {
-  CHECK(clients_.count(e.window));
+  //CHECK(clients_.count(e.window));
+  if (isBar(e.window)) {
+    return;
+  }
   const Window frame = clients_[e.window];
   const Position<int> drag_pos(e.x_root, e.y_root);
   const Vector2D<int> delta = drag_pos - drag_start_pos_;
@@ -458,6 +500,9 @@ void WindowManager::OnMotionNotify(const XMotionEvent& e) {
     const Position<int> dest_frame_pos = drag_start_frame_pos_ + delta;
     std::cout << "\n\n";   
     std::cout << dest_frame_pos.x;
+    if (isBar(frame)) {
+    return;
+  }
     XMoveWindow(
         display_,
         frame,
@@ -470,6 +515,10 @@ void WindowManager::OnMotionNotify(const XMotionEvent& e) {
         max(delta.y, -drag_start_frame_size_.height));
     const Size<int> dest_frame_size = drag_start_frame_size_ + size_delta;
     // 1. Resize frame.
+  if (isBar(frame) == 1) {
+    printf("\n\n\n ALERT\n\n\n");
+    return;
+  }
     XResizeWindow(
         display_,
         frame,
@@ -641,18 +690,7 @@ void WindowManager::OnKeyPress(const XKeyEvent& e) {
   else if ((e.state & Mod1Mask) &&
       (e.keycode == XKeysymToKeycode(display_, XK_T))){
       
-      Window returned_root, returned_parent;
-      Window* top_level_windows;
-      unsigned int num_top_level_windows;
-      XQueryTree(
-        display_,
-        root_,
-        &returned_root,
-        &returned_parent,
-        &top_level_windows,
-        &num_top_level_windows);
-      iterateWindows(num_top_level_windows, top_level_windows);
-      XFree(top_level_windows);
+      iterateWindows();
   }
   else if ((e.state & Mod1Mask) &&
       (e.keycode == XKeysymToKeycode(display_, XK_Return))){
@@ -737,9 +775,43 @@ struct Tuple WindowManager::getCursor(Display *display) {
             break;
         }
     }
-    printf("Mouse is at (%d,%d)\n", root_x, root_y);
-    
     XFree(root_windows);
     struct Tuple CursorPos = {.x = root_x, .y = root_y};
     return CursorPos;
+}
+
+int WindowManager::isBar(Window w) { //helper function to check if selected window is using an EWMH atom to express as a status bar
+  Atom net_wm_window_type = XInternAtom(display_, "_NET_WM_WINDOW_TYPE", False);
+  Atom net_wm_window_type_dock = XInternAtom(display_, "_NET_WM_WINDOW_TYPE_DOCK", False);
+  Atom net_wm_window_type_desktop = XInternAtom(display_, "_NET_WM_WINDOW_TYPE_DESKTOP", False);
+
+  
+  Atom actual_type;
+  int actual_format;
+  unsigned long num_items, bytes_after;
+  Atom *property = NULL;
+  
+  if (XGetWindowProperty(display_, w, net_wm_window_type, 0, (~0L), False, XA_ATOM, &actual_type, &actual_format, &num_items, &bytes_after, (unsigned char **)&property) == Success) {
+        if (property != NULL) {
+            for (unsigned long i = 0; i < num_items; i++) {
+                if (property[i] == net_wm_window_type_dock || property[i] == net_wm_window_type_desktop) {
+                    return 1; //bar detected
+
+                }
+            }
+            XFree(property);
+        }
+    }
+return 0; //normal window
+}
+
+
+int WindowManager::getBarHeight() {
+  XWindowAttributes wattrs;
+  XGetWindowAttributes(display_, bar_, &wattrs);
+  printf("\n\nHeight: %d\n\n", wattrs.height);
+  if (wattrs.height < -1000 or wattrs.height > 1000) { //workaround for preventing corrupt results
+    return 0;
+  }
+  return wattrs.height;
 }
