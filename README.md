@@ -39,3 +39,14 @@ git clone https://github.com/kuglatec/windowManager
 ```Alt + t``` | enter tiling mode (allign windows)
 # credits
 jichu4n for his blog series about x window managers and his basic_wm which this project is based off 
+
+# Features
+
+allthough this project is barely usable and unstable, you can get a overview of features included (features marked with N will be included in the next release)
+
+[Floating Windows] Y
+[vertical tiling] Y
+[gaps] N
+[resizing windows] Y
+[swapping windows] Y
+[EWMH bar support (e.g. polybar)] Y
