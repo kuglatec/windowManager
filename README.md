@@ -60,3 +60,6 @@ swapping windows | Y
 
 
 EWMH bar support (e.g. polybar) | Y
+
+
+configuration support | N
