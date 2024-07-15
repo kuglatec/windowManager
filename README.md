@@ -9,8 +9,9 @@ git clone https://github.com/kuglatec/windowManager
 2. Install Xephyr for using a nested X session
 3. Install libx11
 4. install google glog
-5. ```cd windowManager```
-6. ```./buiild_and_run.sh```
+5. install xterm (idk why but it wont work without it being started by xinitrc)
+6. ```cd windowManager```
+7. ```./buiild_and_run.sh```
 
 
 
